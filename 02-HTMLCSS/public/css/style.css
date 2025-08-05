@@ -1,0 +1,102 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Times New Roman", Times, serif;
+    background-color: #f6f9fc;
+}
+
+
+/* Container Utama */
+.container {
+    width: 60%;
+    margin: 50px auto;
+    background-color: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 3px 4px 8px 1px rgba(51,48,48,0.78);
+    -webkit-box-shadow: 3px 4px 8px 1px rgba(51,48,48,0.78);
+    -moz-box-shadow: 3px 4px 8px 1px rgba(51,48,48,0.78);
+}
+
+/* Logo Sanbercode */
+.container__top {
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.container__top img {
+    max-width: 180px;
+}
+
+
+/* Judul utama */
+#container__article-list h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Artikel */
+.article {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 15px;
+}
+
+.article a {
+    text-decoration: underline;
+    color: #4b0082;
+}
+
+.article h3 {
+    margin: 0;
+}
+
+.article p {
+    font-size: 14px;
+    color: #333;
+    margin-top: 8px;
+}
+
+
+/* Tombol */
+.container__bottom {
+    text-align: center;
+    margin-top: 30px;
+}
+.container__bottom button {
+    background-color: #A149FA;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0px 8px 15px rgba(161, 73, 250, 0.3);
+    transition: background-color 0.3s ease;
+}
+.container__bottom button:hover {
+    background-color: #8e3de0;
+}
+
+/* Responsive */
+@media only screen and (max-width: 768px) {
+    .container {
+        width: 90%;
+        padding: 20px;
+        margin: 20px auto;
+    }
+
+    #container__article-list h1 {
+        font-size: 20px;
+    }
+
+    .article p {
+        font-size: 13px;
+    }
+
+    .container__bottom button {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+}
