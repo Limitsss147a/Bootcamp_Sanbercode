@@ -1,0 +1,38 @@
+.card {
+    background: white;
+    padding: 20px;
+    margin: 20px auto;
+    margin-top: 60px;
+    width: 750px;
+    border-radius: 6px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+  }
+  
+  .card h1, .card h2 {
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .card h1, .card h2{
+    font-size: 25px;
+  }
+    
+  .card p {
+    font-size: 15px;
+    margin: 0;
+  }
+  
+  .card ul {
+    padding-left: 20px;
+    margin: 0;
+  }
+  
+  .card li {
+    font-size: 14px;
+  }
+  
+  hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 10px 0;
+  }  

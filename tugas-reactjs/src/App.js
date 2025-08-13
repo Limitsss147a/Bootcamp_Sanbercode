@@ -1,15 +1,14 @@
-import './App.css';
+import React from 'react';
+import Tugas6 from './components/tugas6/tugas6';
+import Tugas7 from './components/tugas7/tugas7';
 
-function App() {
+const App = () => {
   return (
-    <div className="app-container">
-      <div className="content-card">
-        <h1>Hi, Saya Angga</h1>
-        <hr></hr>
-        <p>Saya dari Batch 69 sudah berhasil menginstall React</p>
-      </div>
-    </div>
+    <>
+      <Tugas6/>
+      <Tugas7 name="Angga Adhya Pratama" batch="69" email="angga147a@gmail.com"/>
+    </>
   );
-}
+};
 
 export default App;
