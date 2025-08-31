@@ -1,24 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-import { Table, Button, Spinner, Modal } from 'flowbite-react';
-import { HiOutlineExclamationCircle } from 'react-icons/hi';
-import { useAuth } from '../../hooks/useAuth';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 const JobListManagement = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [jobToDelete, setJobToDelete] = useState(null);
-  const { token } = useAuth();
+  const [error, setError] = useState(null);
+  const { token } = useContext(AuthContext);
 
   const fetchJobs = async () => {
     setLoading(true);
     try {
       const response = await axios.get('https://final-project-api-alpha.vercel.app/api/jobs');
-      setJobs(response.data.data);
-    } catch (error) {
-      console.error('Failed to fetch jobs:', error);
+      
+      // Mengambil data dari response.data (berdasarkan struktur API Anda)
+      if (response.data && Array.isArray(response.data)) {
+        setJobs(response.data);
+      } else if (response.data && Array.isArray(response.data.data)) {
+        // Fallback jika struktur API ternyata { data: [...] }
+        setJobs(response.data.data);
+      }
+      
+      setError(null);
+    } catch (err) {
+      setError("Gagal mengambil data lowongan.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -28,97 +35,87 @@ const JobListManagement = () => {
     fetchJobs();
   }, []);
 
-  const handleDelete = async () => {
-    if (!jobToDelete) return;
-
-    try {
-      await axios.delete(`https://final-project-api-alpha.vercel.app/api/jobs/${jobToDelete}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Refresh data setelah berhasil hapus
-      fetchJobs();
-    } catch (error) {
-      console.error('Failed to delete job:', error);
-    } finally {
-      setShowModal(false);
-      setJobToDelete(null);
+  const handleDelete = async (jobId) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus lowongan ini?")) {
+      try {
+        await axios.delete(`https://final-project-api-alpha.vercel.app/api/jobs/${jobId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        fetchJobs(); // Ambil ulang data setelah berhasil menghapus
+      } catch (err) {
+        alert("Gagal menghapus data.");
+        console.error(err);
+      }
     }
   };
 
-  const openDeleteModal = (id) => {
-    setJobToDelete(id);
-    setShowModal(true);
-  };
-
   if (loading) {
-    return (
-      <div className="text-center">
-        <Spinner size="xl" />
-      </div>
-    );
+    return <div className="p-6 text-center">Memuat data...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-red-500 text-center">{error}</div>;
   }
 
   return (
-    <div>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Job Vacancy Management</h1>
-        <Link to="/dashboard/list-job-vacancy/create">
-          <Button color="success">Create New Job</Button>
+        <h1 className="text-3xl font-bold">Kelola Lowongan</h1>
+        <Link
+          to="/dashboard/list-job-vacancy/form"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+        >
+          Buat Lowongan Baru
         </Link>
       </div>
-
-      <Table hoverable>
-        <Table.Head>
-          <Table.HeadCell>Title</Table.HeadCell>
-          <Table.HeadCell>Company</Table.HeadCell>
-          <Table.HeadCell>Type</Table.HeadCell>
-          <Table.HeadCell>Status</Table.HeadCell>
-          <Table.HeadCell>
-            <span className="sr-only">Actions</span>
-          </Table.HeadCell>
-        </Table.Head>
-        <Table.Body className="divide-y">
-          {jobs.map((job) => (
-            <Table.Row key={job.id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
-              <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                {job.title}
-              </Table.Cell>
-              <Table.Cell>{job.company_name}</Table.Cell>
-              <Table.Cell>{job.job_type}</Table.Cell>
-              <Table.Cell>{job.job_status === 1 ? 'Open' : 'Closed'}</Table.Cell>
-              <Table.Cell className="flex gap-2">
-                <Link to={`/dashboard/list-job-vacancy/edit/${job.id}`}>
-                  <Button color="warning" size="sm">Edit</Button>
-                </Link>
-                <Button color="failure" size="sm" onClick={() => openDeleteModal(job.id)}>
-                  Delete
-                </Button>
-              </Table.Cell>
-            </Table.Row>
-          ))}
-        </Table.Body>
-      </Table>
-      
-      {/* Modal Konfirmasi Hapus */}
-      <Modal show={showModal} size="md" onClose={() => setShowModal(false)} popup>
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Are you sure you want to delete this job?
-            </h3>
-            <div className="flex justify-center gap-4">
-              <Button color="failure" onClick={handleDelete}>
-                {"Yes, I'm sure"}
-              </Button>
-              <Button color="gray" onClick={() => setShowModal(false)}>
-                No, cancel
-              </Button>
-            </div>
-          </div>
-        </Modal.Body>
-      </Modal>
+      <div className="bg-white shadow-md rounded-lg overflow-x-auto">
+        <table className="min-w-full leading-normal">
+          <thead>
+            {/* ... header tabel tidak berubah ... */}
+            <tr>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Judul Lowongan
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Perusahaan
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Gunakan job._id sebagai key unik */}
+            {jobs.map((job) => (
+              <tr key={job._id}> 
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <p className="text-gray-900 whitespace-no-wrap">{job.title}</p>
+                  <p className="text-gray-600 whitespace-no-wrap text-xs">{job.company_city}</p>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <p className="text-gray-900 whitespace-no-wrap">{job.company_name}</p>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                  <span className={`relative inline-block px-3 py-1 font-semibold leading-tight ${ job.job_status === 1 ? 'text-green-900' : 'text-red-900' }`}>
+                    <span aria-hidden className={`absolute inset-0 ${ job.job_status === 1 ? 'bg-green-200' : 'bg-red-200' } opacity-50 rounded-full`}></span>
+                    <span className="relative">{job.job_status === 1 ? 'Dibuka' : 'Ditutup'}</span>
+                  </span>
+                </td>
+                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                  {/* Gunakan job._id untuk link Edit dan tombol Hapus */}
+                  <Link to={`/dashboard/list-job-vacancy/form/${job._id}`} className="text-indigo-600 hover:text-indigo-900 mr-4 font-semibold">
+                    Edit
+                  </Link>
+                  <button onClick={() => handleDelete(job._id)} className="text-red-600 hover:text-red-900 font-semibold">
+                    Hapus
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

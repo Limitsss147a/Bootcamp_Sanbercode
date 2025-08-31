@@ -1,143 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../hooks/useAuth';
-import { Card, Label, TextInput, Textarea, Button, Select } from 'flowbite-react';
+import { AuthContext } from '../../context/AuthContext';
+
+// 1. Definisikan state awal di luar komponen agar tidak dibuat ulang terus-menerus
+const initialFormData = {
+  title: '',
+  job_description: '',
+  job_qualification: '',
+  job_type: '',
+  job_tenure: '',
+  job_status: 1,
+  company_name: '',
+  company_image_url: '',
+  company_city: '',
+  salary_min: 0,
+  salary_max: 0,
+};
 
 const JobForm = () => {
-  const { id } = useParams(); // Cek apakah ada ID di URL (untuk mode edit)
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
-  const [formData, setFormData] = useState({
-    title: '',
-    job_description: '',
-    job_qualification: '',
-    job_type: 'On-site',
-    job_tenure: 'Full-time',
-    job_status: 1,
-    company_name: '',
-    company_image_url: '',
-    company_city: '',
-    salary_min: '',
-    salary_max: '',
-  });
+  const { token } = useContext(AuthContext);
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [loading, setLoading] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (id) {
-      // Jika ada ID, ini adalah mode EDIT. Ambil data pekerjaan.
+      // Mode Edit
+      setIsEditMode(true);
       const fetchJobData = async () => {
+        setLoading(true);
         try {
           const response = await axios.get(`https://final-project-api-alpha.vercel.app/api/jobs/${id}`);
-          setFormData(response.data.data);
+          // 2. Gabungkan state awal dengan data dari API untuk mencegah nilai undefined
+          setFormData({ ...initialFormData, ...response.data });
         } catch (error) {
-          console.error('Failed to fetch job data:', error);
+          console.error("Gagal mengambil data pekerjaan:", error);
+          alert("Gagal memuat data untuk diedit.");
+        } finally {
+          setLoading(false);
         }
       };
       fetchJobData();
+    } else {
+      // Mode Buat Baru
+      setIsEditMode(false);
+      setFormData(initialFormData); // Pastikan form kosong saat membuat baru
     }
   }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'number' ? parseInt(value) : value,
-    });
+    // Konversi ke angka jika tipenya number
+    const finalValue = type === 'number' ? parseInt(value, 10) : value;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: finalValue,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = id
-      ? `https://final-project-api-alpha.vercel.app/api/jobs/${id}` // URL untuk UPDATE
-      : 'https://final-project-api-alpha.vercel.app/api/jobs'; // URL untuk CREATE
-    const method = id ? 'put' : 'post';
+    setLoading(true);
+
+    const apiHeaders = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
 
     try {
-      await axios[method](url, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      navigate('/dashboard/list-job-vacancy'); // Kembali ke tabel setelah berhasil
+      if (isEditMode) {
+        // Mode Edit: Gunakan method PUT
+        await axios.put(`https://final-project-api-alpha.vercel.app/api/jobs/${id}`, formData, apiHeaders);
+        alert('Data berhasil diperbarui!');
+      } else {
+        // Mode Create: Gunakan method POST
+        await axios.post('https://final-project-api-alpha.vercel.app/api/jobs', formData, apiHeaders);
+        alert('Data berhasil dibuat!');
+      }
+      navigate('/dashboard/list-job-vacancy');
     } catch (error) {
-      console.error('Failed to submit form:', error);
+      console.error("Terjadi kesalahan:", error.response ? error.response.data : error.message);
+      alert('Terjadi kesalahan saat menyimpan data.');
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading && isEditMode) {
+    return <div className="p-6 text-center">Memuat data form...</div>;
+  }
+
   return (
-    <Card>
-      <h1 className="text-2xl font-bold">{id ? 'Edit Job Vacancy' : 'Create New Job Vacancy'}</h1>
-      <form className="grid grid-cols-1 md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
-        {/* Kolom Kiri */}
-        <div>
-          <div className="mb-4">
-            <Label htmlFor="title" value="Job Title" />
-            <TextInput id="title" name="title" value={formData.title} onChange={handleChange} required />
+    <div className="p-6 bg-gray-100 min-h-full">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md space-y-8 max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold text-gray-900 border-b pb-4">
+          {isEditMode ? 'Edit Lowongan Pekerjaan' : 'Buat Lowongan Pekerjaan Baru'}
+        </h1>
+
+        {/* ... sisa kode form tidak perlu diubah, karena sudah aman ... */}
+        {/* Baris 1: Judul dan Nama Perusahaan */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700">Judul Lowongan</label>
+            <input type="text" name="title" id="title" value={formData.title} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
-            <Label htmlFor="company_name" value="Company Name" />
-            <TextInput id="company_name" name="company_name" value={formData.company_name} onChange={handleChange} required />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="company_city" value="Company City" />
-            <TextInput id="company_city" name="company_city" value={formData.company_city} onChange={handleChange} required />
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="company_image_url" value="Company Image URL" />
-            <TextInput id="company_image_url" name="company_image_url" value={formData.company_image_url} onChange={handleChange} required />
-          </div>
-          <div className="flex gap-4">
-            <div className="mb-4 w-full">
-                <Label htmlFor="salary_min" value="Minimum Salary" />
-                <TextInput id="salary_min" name="salary_min" type="number" value={formData.salary_min} onChange={handleChange} required />
-            </div>
-            <div className="mb-4 w-full">
-                <Label htmlFor="salary_max" value="Maximum Salary" />
-                <TextInput id="salary_max" name="salary_max" type="number" value={formData.salary_max} onChange={handleChange} required />
-            </div>
+          <div>
+            <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">Nama Perusahaan</label>
+            <input type="text" name="company_name" id="company_name" value={formData.company_name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
         </div>
 
-        {/* Kolom Kanan */}
+        {/* Deskripsi Pekerjaan */}
         <div>
-          <div className="mb-4">
-            <Label htmlFor="job_description" value="Job Description" />
-            <Textarea id="job_description" name="job_description" value={formData.job_description} onChange={handleChange} required rows={4} />
+          <label htmlFor="job_description" className="block text-sm font-medium text-gray-700">Deskripsi Pekerjaan</label>
+          <textarea id="job_description" name="job_description" rows={4} value={formData.job_description} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+        </div>
+
+        {/* Kualifikasi Pekerjaan */}
+        <div>
+          <label htmlFor="job_qualification" className="block text-sm font-medium text-gray-700">Kualifikasi Pekerjaan</label>
+          <textarea id="job_qualification" name="job_qualification" rows={4} value={formData.job_qualification} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+        </div>
+
+        {/* ... (sisa input fields) ... */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="company_image_url" className="block text-sm font-medium text-gray-700">URL Logo Perusahaan</label>
+            <input type="url" name="company_image_url" id="company_image_url" value={formData.company_image_url} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
-          <div className="mb-4">
-            <Label htmlFor="job_qualification" value="Job Qualification" />
-            <Textarea id="job_qualification" name="job_qualification" value={formData.job_qualification} onChange={handleChange} required rows={4} />
-          </div>
-          <div className="flex gap-4">
-            <div className="mb-4 w-full">
-                <Label htmlFor="job_type" value="Job Type" />
-                <Select id="job_type" name="job_type" value={formData.job_type} onChange={handleChange}>
-                    <option>On-site</option>
-                    <option>Work From Home</option>
-                    <option>Hybrid</option>
-                </Select>
-            </div>
-            <div className="mb-4 w-full">
-                <Label htmlFor="job_tenure" value="Job Tenure" />
-                <Select id="job_tenure" name="job_tenure" value={formData.job_tenure} onChange={handleChange}>
-                    <option>Full-time</option>
-                    <option>Part-time</option>
-                    <option>Contract</option>
-                </Select>
-            </div>
-          </div>
-          <div className="mb-4">
-            <Label htmlFor="job_status" value="Job Status" />
-            <Select id="job_status" name="job_status" value={formData.job_status} onChange={handleChange}>
-              <option value={1}>Open</option>
-              <option value={0}>Closed</option>
-            </Select>
+          <div>
+            <label htmlFor="company_city" className="block text-sm font-medium text-gray-700">Kota Perusahaan</label>
+            <input type="text" name="company_city" id="company_city" value={formData.company_city} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
         </div>
 
-        <div className="md:col-span-2 flex justify-end">
-          <Button type="submit">{id ? 'Update Job' : 'Create Job'}</Button>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label htmlFor="job_type" className="block text-sm font-medium text-gray-700">Tipe Pekerjaan</label>
+            <input type="text" name="job_type" id="job_type" placeholder="e.g., On-site, Remote" value={formData.job_type} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          </div>
+          <div>
+            <label htmlFor="job_tenure" className="block text-sm font-medium text-gray-700">Masa Kerja</label>
+            <input type="text" name="job_tenure" id="job_tenure" placeholder="e.g., Kontrak, Penuh Waktu" value={formData.job_tenure} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          </div>
+          <div>
+            <label htmlFor="job_status" className="block text-sm font-medium text-gray-700">Status Lowongan</label>
+            <select id="job_status" name="job_status" value={formData.job_status} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+              <option value={1}>Dibuka</option>
+              <option value={0}>Ditutup</option>
+            </select>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">Gaji Minimum</label>
+            <input type="number" name="salary_min" id="salary_min" value={formData.salary_min} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          </div>
+          <div>
+            <label htmlFor="salary_max" className="block text-sm font-medium text-gray-700">Gaji Maksimum</label>
+            <input type="number" name="salary_max" id="salary_max" value={formData.salary_max} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+          </div>
+        </div>
+        
+        {/* Tombol Aksi */}
+        <div className="flex justify-end gap-4 pt-4 border-t">
+          <button type="button" onClick={() => navigate('/dashboard/list-job-vacancy')} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+            Batal
+          </button>
+          <button type="submit" disabled={loading} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-400">
+            {loading ? 'Menyimpan...' : 'Simpan'}
+          </button>
         </div>
       </form>
-    </Card>
+    </div>
   );
 };
 

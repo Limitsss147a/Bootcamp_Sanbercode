@@ -1,10 +1,17 @@
 import React from 'react';
-import { RouterProvider } from 'react-router-dom';
-import { router } from './routes/AppRoutes'; // Impor router kita
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import AppRoutes from './routes/AppRoutes';
 
-function App() {
-  // Cukup render RouterProvider dengan konfigurasi router kita
-  return <RouterProvider router={router} />;
-}
+const App = () => {
+  return (
+    <Router>
+      {/* Pastikan AuthProvider membungkus AppRoutes */}
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
+  );
+};
 
 export default App;

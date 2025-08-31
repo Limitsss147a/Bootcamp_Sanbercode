@@ -1,71 +1,53 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { Card, Label, TextInput, Button, Alert } from 'flowbite-react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    image_url: '',
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [imageUrl, setImageUrl] = useState('https://cdn-icons-png.flaticon.com/512/149/149071.png'); // Default image
+  const { register } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
-    try {
-      await axios.post('https://final-project-api-alpha.vercel.app/api/auth/register', formData);
-      setSuccess('Registration successful! Redirecting to login...');
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000); // Tunggu 2 detik sebelum redirect
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-      console.error(err);
-    }
+    setLoading(true);
+    await register(name, email, password, imageUrl);
+    setLoading(false);
   };
 
   return (
-    <div className="flex justify-center items-center mt-10">
-      <Card className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center">Register</h1>
-        {error && <Alert color="failure">{error}</Alert>}
-        {success && <Alert color="success">{success}</Alert>}
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div>
-            <Label htmlFor="name" value="Full Name" />
-            <TextInput id="name" type="text" required onChange={handleChange} />
+    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
+        <h2 className="text-3xl font-extrabold text-center text-gray-900">
+          Buat Akun Baru
+        </h2>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <input name="name" type="text" required className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Nama Lengkap" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div>
+              <input name="email" type="email" required className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Alamat email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div>
+              <input name="password" type="password" required className="relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Password (min. 8 karakter)" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
           </div>
           <div>
-            <Label htmlFor="image_url" value="Profile Picture URL" />
-            <TextInput id="image_url" type="text" required onChange={handleChange} />
+            <button type="submit" disabled={loading} className="group relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400">
+              {loading ? 'Memproses...' : 'Daftar'}
+            </button>
           </div>
-          <div>
-            <Label htmlFor="email" value="Email" />
-            <TextInput id="email" type="email" placeholder="name@example.com" required onChange={handleChange} />
-          </div>
-          <div>
-            <Label htmlFor="password" value="Password (min. 8 characters)" />
-            <TextInput id="password" type="password" required onChange={handleChange} />
-          </div>
-          <Button type="submit">Register</Button>
-          <p className="text-sm text-center">
-            Already have an account?{' '}
-            <Link to="/login" className="text-cyan-600 hover:underline">
-              Login here
-            </Link>
-          </p>
         </form>
-      </Card>
+        <p className="text-sm text-center text-gray-600">
+          Sudah punya akun?{' '}
+          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Login di sini
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };

@@ -1,17 +1,26 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import DashboardSidebar from './Sidebar'; // Impor Sidebar yang baru dibuat
+import Sidebar from './Sidebar'; // Pastikan path ke Sidebar sudah benar
 
 const DashboardLayout = () => {
   return (
-    <div className="flex min-h-screen">
-      <aside className="w-64 flex-shrink-0">
-        <DashboardSidebar />
-      </aside>
-      <main className="flex-1 p-6 bg-gray-100 dark:bg-gray-900">
-        {/* Konten halaman dashboard akan dirender di sini */}
-        <Outlet />
-      </main>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Konten Utama */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200">
+          <div className="container mx-auto px-6 py-8">
+            {/* Outlet adalah komponen kunci dari React Router.
+              Di sinilah konten dari rute anak (seperti DashboardOverview, 
+              JobListManagement, dll.) akan ditampilkan. 
+              TANPA INI, halaman akan kosong dan menyebabkan error.
+            */}
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

@@ -1,63 +1,82 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios'; // Pastikan axios sudah di-install
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-// 1. Membuat Context
 export const AuthContext = createContext(null);
 
-// 2. Membuat Provider Component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  // Ambil token dari localStorage saat pertama kali aplikasi dimuat
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const navigate = useNavigate();
 
-  // useEffect untuk mengatur header Authorization di axios setiap kali token berubah
+  // ==========================================================
+  // INI BAGIAN useEffect YANG ANDA CARI
+  // ==========================================================
+  // Tujuan: Menjaga state login tetap ada saat halaman di-refresh.
   useEffect(() => {
     if (token) {
-      // Menyimpan token di localStorage agar tidak hilang saat refresh
-      localStorage.setItem('token', token);
-      // Mengatur header default untuk semua request axios
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Jika ada token di localStorage, kita anggap pengguna sudah login.
+      // Di aplikasi production, Anda bisa menambahkan validasi token ke API di sini.
+      console.log("Token ditemukan. Pengguna dianggap sudah login.");
     } else {
-      // Menghapus token dari localStorage dan header axios jika token null
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
+      console.log("Tidak ada token. Pengguna dianggap belum login.");
     }
-  }, [token]);
+  }, [token]); // Hook ini akan berjalan setiap kali nilai 'token' berubah.
 
-  // Fungsi untuk menangani login
-  const login = async (credentials) => {
+  const login = async (email, password) => {
     try {
-      const response = await axios.post('https://final-project-api-alpha.vercel.app/api/auth/login', credentials);
-      const { token: newToken, user: userData } = response.data;
-      
-      setToken(newToken);
-      setUser(userData); // Simpan juga data user jika API mengembalikannya
-      
-      return response; // Mengembalikan response agar bisa ditangani di halaman login
+      const response = await axios.post('https://final-project-api-alpha.vercel.app/api/auth/login', {
+        email,
+        password,
+      });
+      const { token: responseToken, user: userData } = response.data;
+      localStorage.setItem('token', responseToken);
+      setToken(responseToken);
+      setUser(userData);
+      return true;
     } catch (error) {
-      console.error("Login failed:", error);
-      // Lemparkan error agar bisa ditangkap di komponen pemanggil
-      throw error;
+      console.error('Login Gagal:', error.response ? error.response.data : error.message);
+      return false;
     }
   };
-  
-  // Fungsi untuk menangani logout
+
+  // ==========================================================
+  // INI FUNGSI register YANG ANDA CARI
+  // ==========================================================
+  const register = async (name, email, password, imageUrl) => {
+    try {
+      await axios.post('https://final-project-api-alpha.vercel.app/api/auth/register', {
+        name,
+        email,
+        password,
+        image_url: imageUrl,
+      });
+      alert("Registrasi berhasil! Silakan login dengan akun Anda.");
+      navigate('/login'); // Arahkan ke halaman login setelah sukses
+      return true;
+    } catch (error) {
+      console.error("Registrasi Gagal:", error.response ? error.response.data : error.message);
+      alert("Registrasi Gagal! Mungkin email sudah terdaftar.");
+      return false;
+    }
+  };
+
   const logout = () => {
+    localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    navigate('/login');
   };
-  
-  // Nilai yang akan disediakan untuk semua komponen di dalam provider
+
+  // Menyediakan semua state dan fungsi ke komponen lain
   const value = {
     token,
     user,
+    isAuthenticated: !!token,
     login,
+    register, // <-- register sekarang disertakan
     logout,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
