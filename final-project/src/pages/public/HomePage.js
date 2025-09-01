@@ -4,12 +4,9 @@ import axios from 'axios';
 import { MapPinIcon, BriefcaseIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
 
 const HomePage = () => {
-  // State untuk data
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  // State untuk filter dan search
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCity, setFilterCity] = useState('');
   const [filterCompany, setFilterCompany] = useState('');
@@ -29,8 +26,8 @@ const HomePage = () => {
     };
     fetchJobs();
   }, []);
+  
 
-  // Logika untuk filter data
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
       const matchSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -41,14 +38,13 @@ const HomePage = () => {
     });
   }, [jobs, searchTerm, filterCity, filterCompany, filterMinSalary]);
 
-  // Ekstrak opsi unik untuk filter dropdown
   const uniqueCities = useMemo(() => [...new Set(jobs.map(job => job.company_city))], [jobs]);
   const uniqueCompanies = useMemo(() => [...new Set(jobs.map(job => job.company_name))], [jobs]);
 
   const renderContent = () => {
     if (loading) {
       return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="bg-white p-6 rounded-xl border border-gray-200 animate-pulse">
               <div className="flex items-center mb-4">
@@ -69,9 +65,8 @@ const HomePage = () => {
     if (error) return <p className="text-center text-lg text-red-600">{error}</p>;
     if (filteredJobs.length === 0 && !loading) return <p className="text-center text-lg text-gray-500">Lowongan tidak ditemukan.</p>;
 
-    // Tampilkan kartu dari hasil filter
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {filteredJobs.map((job, index) => (
           <div
             key={job._id}
@@ -113,19 +108,18 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      <div className="text-center py-16 md:py-24 px-6 bg-white rounded-2xl mb-16 border border-slate-200 shadow-lg">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight">
+    <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+      <div className="text-center py-12 md:py-20 px-4 sm:px-6 bg-white rounded-2xl mb-12 md:mb-16 border border-slate-200 shadow-lg">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight">
           Temukan <span className="text-indigo-600">Pekerjaan Terbaik</span> Anda, Hari Ini.
         </h1>
-        <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="mt-4 md:mt-6 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
           Platform terpercaya untuk menghubungkan talenta hebat dengan peluang karir impian di seluruh Indonesia.
         </p>
       </div>
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-lg mb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-          {/* Search Input */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div className="sm:col-span-2 lg:col-span-2">
             <label htmlFor="search" className="block text-sm font-semibold text-gray-700 mb-1">Cari Pekerjaan</label>
             <input 
               type="text" 
@@ -136,7 +130,6 @@ const HomePage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          {/* Filter Kota */}
           <div>
             <label htmlFor="city" className="block text-sm font-semibold text-gray-700 mb-1">Kota</label>
             <select id="city" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" value={filterCity} onChange={(e) => setFilterCity(e.target.value)}>
@@ -144,7 +137,6 @@ const HomePage = () => {
               {uniqueCities.map(city => <option key={city} value={city}>{city}</option>)}
             </select>
           </div>
-          {/* Filter Perusahaan */}
           <div>
             <label htmlFor="company" className="block text-sm font-semibold text-gray-700 mb-1">Perusahaan</label>
             <select id="company" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" value={filterCompany} onChange={(e) => setFilterCompany(e.target.value)}>
@@ -152,8 +144,7 @@ const HomePage = () => {
               {uniqueCompanies.map(comp => <option key={comp} value={comp}>{comp}</option>)}
             </select>
           </div>
-          {/* Tombol Reset */}
-          <div>
+          <div className="sm:col-span-2 lg:col-span-1">
             <button 
               onClick={() => {
                 setSearchTerm('');
