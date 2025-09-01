@@ -110,7 +110,6 @@ const JobListManagement = () => {
         
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            {/* ... (thead tetap sama) ... */}
             <thead className="bg-slate-50">
               <tr>
                 <th className="p-4 text-left font-semibold text-gray-600">No</th>
@@ -120,7 +119,6 @@ const JobListManagement = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {/* Gunakan filteredJobs untuk me-render tabel */}
               {filteredJobs.map((job, index) => (
                 <tr key={job._id} className="hover:bg-slate-50">
                   <td className="p-4 text-gray-500">{index + 1}</td>
@@ -147,7 +145,7 @@ const JobListManagement = () => {
   );
 };
 
-// Komponen StatCard (tetap sama)
+// Komponen StatCard
 const StatCard = ({ icon, title, value }) => (
   <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-lg flex items-center space-x-4">
     <div className="bg-slate-100 p-3 rounded-full">{icon}</div>

@@ -1,19 +1,26 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth'; // Hook yang kita buat tadi
+import React, { useContext } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 
-const ProtectedRoute = () => {
-  // Mengambil token dari context
-  const { token } = useAuth();
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useContext(AuthContext);
+  const location = useLocation();
 
-  // Memeriksa apakah ada token
-  if (!token) {
-    // Jika tidak ada, alihkan ke halaman login
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Jika ada, tampilkan konten halaman yang dilindungi
-  return <Outlet />;
+  return children;
 };
 
 export default ProtectedRoute;

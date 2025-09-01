@@ -6,7 +6,6 @@ import AppRoutes from './routes/AppRoutes';
 const App = () => {
   return (
     <Router>
-      {/* Pastikan AuthProvider membungkus AppRoutes */}
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

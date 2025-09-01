@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom'; // 1. Tambahkan Navigate
+import { Routes, Route, Navigate } from 'react-router-dom';
 import PublicLayout from '../components/layouts/PublicLayout';
 import DashboardLayout from '../components/layouts/DashboardLayout';
 import HomePage from '../pages/public/HomePage';
@@ -11,9 +11,8 @@ import JobForm from '../pages/dashboard/JobForm';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
-
-// 2. Komponen kecil untuk melakukan redirect
-const DashboardRedirect = () => <Navigate to="/dashboard/list-job-vacancy" replace />;
+import Profile from '../pages/dashboard/Profile';
+import ChangePassword from '../pages/dashboard/ChangePassword';
 
 const AppRoutes = () => {
   return (
@@ -24,6 +23,7 @@ const AppRoutes = () => {
         <Route path="job-vacancy/:id" element={<JobDetailPage />} />
       </Route>
 
+      {/* Rute untuk yang BELUM login */}
       <Route element={<PublicRoute />}>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -38,13 +38,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* 3. Ubah index element menjadi komponen redirect */}
-        <Route index element={<DashboardRedirect />} />
+        {/* Redirect dari /dashboard ke /dashboard/list-job-vacancy */}
+        <Route index element={<Navigate to="list-job-vacancy" replace />} />
         <Route path="list-job-vacancy" element={<JobListManagement />} />
         <Route path="list-job-vacancy/form" element={<JobForm />} />
         <Route path="list-job-vacancy/form/:id" element={<JobForm />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="change-password" element={<ChangePassword />} />
       </Route>
 
+      {/* Halaman Not Found */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 
-// 1. Definisikan state awal di luar komponen agar tidak dibuat ulang terus-menerus
+
 const initialFormData = {
   title: '',
   job_description: '',
@@ -35,7 +35,6 @@ const JobForm = () => {
         setLoading(true);
         try {
           const response = await axios.get(`https://final-project-api-alpha.vercel.app/api/jobs/${id}`);
-          // 2. Gabungkan state awal dengan data dari API untuk mencegah nilai undefined
           setFormData({ ...initialFormData, ...response.data });
         } catch (error) {
           console.error("Gagal mengambil data pekerjaan:", error);
@@ -48,7 +47,7 @@ const JobForm = () => {
     } else {
       // Mode Buat Baru
       setIsEditMode(false);
-      setFormData(initialFormData); // Pastikan form kosong saat membuat baru
+      setFormData(initialFormData);
     }
   }, [id]);
 
@@ -72,11 +71,11 @@ const JobForm = () => {
 
     try {
       if (isEditMode) {
-        // Mode Edit: Gunakan method PUT
+        // Mode Edit
         await axios.put(`https://final-project-api-alpha.vercel.app/api/jobs/${id}`, formData, apiHeaders);
         alert('Data berhasil diperbarui!');
       } else {
-        // Mode Create: Gunakan method POST
+        // Mode Create
         await axios.post('https://final-project-api-alpha.vercel.app/api/jobs', formData, apiHeaders);
         alert('Data berhasil dibuat!');
       }
@@ -99,8 +98,6 @@ const JobForm = () => {
         <h1 className="text-2xl font-bold text-gray-900 border-b pb-4">
           {isEditMode ? 'Edit Lowongan Pekerjaan' : 'Buat Lowongan Pekerjaan Baru'}
         </h1>
-
-        {/* ... sisa kode form tidak perlu diubah, karena sudah aman ... */}
         {/* Baris 1: Judul dan Nama Perusahaan */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -125,12 +122,13 @@ const JobForm = () => {
           <textarea id="job_qualification" name="job_qualification" rows={4} value={formData.job_qualification} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
         </div>
 
-        {/* ... (sisa input fields) ... */}
+        {/* Logo Perusahaan */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="company_image_url" className="block text-sm font-medium text-gray-700">URL Logo Perusahaan</label>
             <input type="url" name="company_image_url" id="company_image_url" value={formData.company_image_url} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
+          {/* Kota Perusahaan */}
           <div>
             <label htmlFor="company_city" className="block text-sm font-medium text-gray-700">Kota Perusahaan</label>
             <input type="text" name="company_city" id="company_city" value={formData.company_city} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
@@ -138,14 +136,17 @@ const JobForm = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Tipe Pekerjaan */}
           <div>
             <label htmlFor="job_type" className="block text-sm font-medium text-gray-700">Tipe Pekerjaan</label>
             <input type="text" name="job_type" id="job_type" placeholder="e.g., On-site, Remote" value={formData.job_type} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
+          {/* Masa Kerja */}
           <div>
             <label htmlFor="job_tenure" className="block text-sm font-medium text-gray-700">Masa Kerja</label>
             <input type="text" name="job_tenure" id="job_tenure" placeholder="e.g., Kontrak, Penuh Waktu" value={formData.job_tenure} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
           </div>
+          {/* Status Lowongan */}
           <div>
             <label htmlFor="job_status" className="block text-sm font-medium text-gray-700">Status Lowongan</label>
             <select id="job_status" name="job_status" value={formData.job_status} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
@@ -155,6 +156,7 @@ const JobForm = () => {
           </div>
         </div>
         
+        {/* Gaji */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="salary_min" className="block text-sm font-medium text-gray-700">Gaji Minimum</label>
