@@ -40,7 +40,6 @@ export const AuthProvider = ({ children }) => {
 
     } catch (error) {
       console.error("Login Gagal:", error.response ? error.response.data : error.message);
-      alert("Login Gagal! Periksa kembali email dan password Anda.");
     }
   };
 

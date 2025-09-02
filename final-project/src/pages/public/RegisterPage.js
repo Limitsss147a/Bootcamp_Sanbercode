@@ -1,33 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { AuthContext } from '../../context/AuthContext'; 
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // 2. Ambil fungsi login dari context
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    image_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+    image_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
-  // Mock registration function
-  const mockRegister = async (name, email, password, image_url) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    if (email === 'existing@test.com') {
-      return { success: false, message: 'Email sudah terdaftar.' };
-    } else {
-      return { success: true, message: 'Registrasi berhasil! Silakan login.' };
-    }
-  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -35,44 +28,42 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
-    setLoading(true);
 
+    // Validasi frontend
     if (formData.password.length < 8) {
       setError('Password minimal 8 karakter');
-      setLoading(false);
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== confirmPassword) {
       setError('Konfirmasi password tidak cocok');
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     try {
-      const result = await mockRegister(
-        formData.name,
-        formData.email,
-        formData.password,
-        formData.image_url
+      // 3. Kirim data ke API registrasi
+      const response = await axios.post(
+        'https://final-project-api-alpha.vercel.app/api/auth/register',
+        formData
       );
-      
-      if (result.success) {
-        setSuccess(result.message);
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          image_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
-        });
-        // redirect otomatis ke login setelah registrasi berhasil
-        setTimeout(() => navigate('/login'), 2000);
-      } else {
-        setError(result.message);
-      }
+
+      // 4. Periksa apakah API memberikan token setelah registrasi
+      if (response.data && response.data.token) {
+        const { token, user } = response.data;
+        login(token, user); // Simpan token dan data pengguna ke context
+        setSuccess('Registrasi berhasil! Anda akan diarahkan ke dashboard.');
+        
+        // Arahkan ke dashboard setelah berhasil
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+      } 
     } catch (err) {
-      setError('Terjadi kesalahan. Silakan coba lagi.');
+      // Tangani error dari API
+      const errorMessage = err.response?.data?.message || 'Terjadi kesalahan. Silakan coba lagi.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -83,8 +74,8 @@ const RegisterPage = () => {
   };
 
   const suggestedImages = [
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-    'https://images.unsplash.com/photo-1494790108755-2616b612b5a0?w=150&h=150&fit=crop&crop=face',
+    'https://shanibacreative.com/wp-content/uploads/2020/06/membuat-foto-profil-yang-bagus-834x556.jpg',
+    'https://www.hipwee.com/wp-content/uploads/2018/10/hipwee-photo-1538291388330-14f5cb8a6ddf-640x427.jpg',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
   ];
@@ -92,15 +83,11 @@ const RegisterPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-100 py-8">
       <div className="w-full max-w-lg p-8 space-y-6 bg-white rounded-2xl shadow-xl border border-gray-200">
-        {/* header */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Buat Akun Baru
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Buat Akun Baru</h2>
           <p className="text-gray-600">Bergabunglah dengan kami</p>
         </div>
         
-        {/* error / success */}
         {error && (
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-700 text-sm">{error}</p>
@@ -112,8 +99,8 @@ const RegisterPage = () => {
           </div>
         )}
         
-        {/* form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Input Name, Email, dan Password (sama seperti sebelumnya) */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
               Nama Lengkap
@@ -129,7 +116,6 @@ const RegisterPage = () => {
               onChange={handleChange}
             />
           </div>
-          
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -145,7 +131,6 @@ const RegisterPage = () => {
               onChange={handleChange}
             />
           </div>
-          
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
@@ -161,7 +146,8 @@ const RegisterPage = () => {
               onChange={handleChange}
             />
           </div>
-
+          
+          {/* Perubahan pada Input Konfirmasi Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
               Konfirmasi Password
@@ -173,8 +159,8 @@ const RegisterPage = () => {
               required
               className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
               placeholder="Konfirmasi password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
           
